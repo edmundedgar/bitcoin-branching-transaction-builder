@@ -37,6 +37,7 @@ function BranchingTransactionBuilder(builder) {
 // This is a slightly-modified copy of TransactionBuilder.sign()
 // The difference is that as well as the redeemScript, we pass in a subscript
 // The subscript is the bit between the OP_IF branches.
+// This should look like one of the normal patterns that bitcoinjs-lib understands
 BranchingTransactionBuilder.prototype.sign = function(builder, index, privKey, redeemScript, subscript, hashType) {
   assert(builder.tx.ins.length >= index, 'No input at index: ' + index)
   hashType = hashType || Transaction.SIGHASH_ALL
