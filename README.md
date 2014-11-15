@@ -2,14 +2,19 @@
 
 ### Features
 
-- Allows you to make and spend transactions using "OR" combinations of conditions.
-- For example, Alice + Bob OR Chika + Dave (but not Alice + Chika or Bob + Dave).
+Allows you to make and spend transactions using "OR" combinations of conditions.
 
-- Each of these sets of conditions is treated as a "subscript".
-- Subscripts should look like standard transactions that bitcoinjs-lib understands.
-- The most common of these is m of n pub multisig.
+For example: 
+- Alice + Bob 
+- OR 
+- Chika + Dave 
+- * But not (Alice + Chika) or (Bob + Dave)
 
-- See test/branching_transaction_builder.js for examples.
+Each of these sets of conditions is treated as a "subscript".
+Subscripts should look like standard transactions that bitcoinjs-lib understands.
+The most common of these is m of n pub multisig.
+
+See test/branching_transaction_builder.js for examples.
 
 
 ## License
