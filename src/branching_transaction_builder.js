@@ -11,8 +11,8 @@ var TransactionBuilder = bitcoin.TransactionBuilder;
 var ops = bitcoin.opcodes;
 
 // You pass this a normal bitcoinjs-lib TransactionBuilder object.
-// We'll get the inputs and any normal outputs from that.
 // Then call BranchingTransactionBuilder methods for branching-related operations
+// We'll get the inputs and any normal outputs from the TransactionBuilder you give us.
 function BranchingTransactionBuilder(builder) {
   this.builder = builder;
 
