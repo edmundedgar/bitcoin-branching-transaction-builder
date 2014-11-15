@@ -10,19 +10,22 @@ var Transaction = bitcoin.Transaction;
 var TransactionBuilder = bitcoin.TransactionBuilder;
 var ops = bitcoin.opcodes;
 
+// You pass this a normal bitcoinjs-lib TransactionBuilder object.
+// We'll get the inputs and any normal outputs from that.
+// Then call BranchingTransactionBuilder methods for branching-related operations
 function BranchingTransactionBuilder(builder) {
   this.builder = builder;
 
   this.subscripts = [];
 
-  // Normally these would be added when you do builder.sign() and kept in the signature
-  // But we're going to cheat and lie to the transaction object about what we're signing
-  // So we have to keep track of these so we can switch them back in at the end
+  // In TransactionBuilder these would be added when you do builder.sign() and kept with the signature
+  // But we cheat and lie to the transaction object about what we're passing it
+  // Keep track of these so we can switch them back in at the end
   this.inputRedeemScripts = {}; 
   this.inputBranches = {};
 
   // We arrange our branches in a tree of nested OP_IFs.
-  // Only bother going up to 4 as we probably hit script size limits anyhow
+  // We only bother going up to 4 you'd probably hit script size limits anyhow
   this.IF_TREE_FLAGS = {
       1: [ [] ],
       2: [ [1],    [0] ],
@@ -94,13 +97,12 @@ BranchingTransactionBuilder.prototype.sign = function(builder, index, privKey, r
   return builder;
 }
 
+// We could almost do this:
+// this.builder.sign(index, privKey, subscript, hashType);
+// ...then rewrite the redeemScript in the signatures prior to calling build()
+// Except that builder.sign wants to autoclassify the scriptType
+// ...rather than letting us tell it.
 BranchingTransactionBuilder.prototype.signBranch = function(index, privKey, redeemScript, hashType, subscript) {
-    // We could almost do this:
-    // this.builder.sign(index, privKey, subscript, hashType);
-    // ...then rewrite the redeemScript in the signatures prior to calling build()
-    // Except that builder.sign wants to autoclassify the scriptType
-    // ...rather than letting us tell it.
-
     this.builder = this.sign(this.builder, index, privKey, redeemScript, subscript, hashType);
     this.inputRedeemScripts[index] = redeemScript;
 }
@@ -143,11 +145,10 @@ BranchingTransactionBuilder.prototype.script = function() {
     return Script.fromASM(asm);
 }
 
+// Build the TX like the normal TXes the TransactionBuilder knows how to build.
+// At this point the signatures have got the subscript set in the "redeem script" field.
+// Once built we'll need to switch that for the real redeemScript, and add the branch flags.
 BranchingTransactionBuilder.prototype.build = function() {
-
-    // Build the TX like the normal TXes the TransactionBuilder knows how to build.
-    // At this point the signatures have got the subscript set in the "redeem script" field.
-    // Once built we'll need to switch that for the real redeemScript, and add the branch flags.
 
     var tx = this.builder.build();
     for(index in this.inputBranches) {
