@@ -15,7 +15,7 @@ function BranchingTransactionBuilder(builder) {
 
   this.subscripts = [];
 
-  // Normally these would be added when we do sign() and kept in the signature
+  // Normally these would be added when you do builder.sign() and kept in the signature
   // But we're going to cheat and lie to the transaction object about what we're signing
   // So we have to keep track of these so we can switch them back in at the end
   this.inputRedeemScripts = {}; 
@@ -26,7 +26,7 @@ function BranchingTransactionBuilder(builder) {
   this.IF_TREE_FLAGS = {
       1: [ [] ],
       2: [ [1],    [0] ],
-      3: [ [1, 1], [1, 0], [1] ],
+      3: [ [1, 1], [1, 0], [0] ],
       4: [ [1, 1], [1, 0], [0, 1], [0, 0] ]
   }
 }
