@@ -137,7 +137,7 @@ BranchingTransactionBuilder.prototype.script = function() {
                    'OP_IF'   + ' ' + asms[0] + ' ' + 'OP_ELSE' + ' ' + asms[1] + ' ' + 'OP_ENDIF' + ' ' +
                   'OP_ELSE'  + ' ' + 
                    'OP_IF'   + ' ' + asms[2] + ' ' + 'OP_ELSE' + ' ' + asms[3] + ' ' + 'OP_ENDIF' + ' ' +
-                  'OP_ENDIF' + ' ';
+                  'OP_ENDIF';
             break;
     }
     return Script.fromASM(asm);
