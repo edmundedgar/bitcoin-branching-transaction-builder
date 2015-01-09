@@ -8,6 +8,7 @@ var ECPubKey = bitcoin.ECPubKey;
 var TransactionBuilder = bitcoin.TransactionBuilder;
 var Transaction = bitcoin.Transaction;
 var Script = bitcoin.Script;
+var Address = bitcoin.Address;
 var scripts = bitcoin.scripts;
 var BigInteger = require('bigi');
 
@@ -85,9 +86,15 @@ describe('BranchingTransactionBuilder', function() {
             var addr2 = k2.pub.getAddress();
             assert.equal('1Fratqwo3Bu2FwMBzAex8WgDbmmGgJYLGH', addr1.toString());
             assert.equal('112jFbM3Lp3qRSjezGFCv2rejT3UQ6rH5Z', addr2.toString());
+
+            // Not really testing our thing, just showing how to get from an address to a hash you can feed scripts
+            var addr1_check = Address.fromBase58Check(addr1.toString());
+            assert.equal(addr1_check.hash.toString('hex'), addr1.hash.toString('hex'));
+            assert.equal(addr1_check.hash.toString('hex'), 'a2f26faf639c9a7e6a3ae5076bf7bbbf6cf1732a');
+
             var branch1 = scripts.pubKeyHashOutput(addr1.hash);
             var branch2 = scripts.pubKeyHashOutput(addr2.hash);
-            //console.log(branch2);
+
 
             var branch_builder = new BranchingTransactionBuilder();
             branch_builder.addSubScript(branch1);
