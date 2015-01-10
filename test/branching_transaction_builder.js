@@ -20,7 +20,7 @@ describe('BranchingTransactionBuilder', function() {
     var pubkeys3 = ['02f3a32b55520c115cc61860066c8280d0adbb471abe5b89e0b5e864948a34961e', '0247e6c3a88d76ab7505c147e5a9bcf0011226f7690081dd728042831f90a391ed' ].map( function(x) { return new ECPubKey.fromHex(x) } );
     var expected_redeem_script = '6363522102f3a32b55520c115cc61860066c8280d0adbb471abe5b89e0b5e864948a34961e2103d93547f38370b35471a8ee463b4245d6b1282a0feccce8e149c4ada76d32df1a52ae6752210247e6c3a88d76ab7505c147e5a9bcf0011226f7690081dd728042831f90a391ed210389688a084ff6f83c9ed3c91236e0f46d060cef32da23dfc6fc147fde6af9ca1052ae6867522102f3a32b55520c115cc61860066c8280d0adbb471abe5b89e0b5e864948a34961e210247e6c3a88d76ab7505c147e5a9bcf0011226f7690081dd728042831f90a391ed52ae68';
     var expected_p2sh_addr = '39a6Ur9hJXDwdvR4TYKPnzWjaYiNfZ4Zxp';
-    var test_output = {"unspent_outputs":[
+    var test_output2 = {"unspent_outputs":[
             {
             "tx_hash":"0343d77440f7989eb828f884bd2d9d559c9525ea659eb27951525a2269225350",
             "tx_hash_big_endian":"50532269225a525179b29e65ea25959c559d2dbd84f828b89e98f74074d74303",
@@ -63,8 +63,8 @@ describe('BranchingTransactionBuilder', function() {
 
         it('produces the expected signed spending transaction', function() {
             var spend_builder = new TransactionBuilder();
-            spend_builder.addInput(test_output['unspent_outputs'][0]['tx_hash_big_endian'], 0);
-            spend_builder.addOutput("1Dc8JwPsxxwHJ9zX1ERYo9q7NQA9SRLqbC", test_output['unspent_outputs'][0]['value'] - 10000);
+            spend_builder.addInput(test_output2['unspent_outputs'][0]['tx_hash_big_endian'], 0);
+            spend_builder.addOutput("1Dc8JwPsxxwHJ9zX1ERYo9q7NQA9SRLqbC", test_output2['unspent_outputs'][0]['value'] - 10000);
 
             var priv1 = ECKey.fromWIF('L3bG2JdtcZtWd7fk8XYAtgnGHJYuPBFkDznJqw21bFWS5B8Pw1Zd');
             var priv2 = ECKey.fromWIF('L3MRgBTuEtfvEpwb4CcGtDm4s79fDR8UK1AhVYcDdRL4pRpsy686');
@@ -105,8 +105,24 @@ describe('BranchingTransactionBuilder', function() {
             var multisigAddress = bitcoin.Address.fromOutputScript(scriptPubKey).toString()
             assert.equal('3PcxJeW5f6Tp4mVAXe4ggGRvDREAPCMF4o', multisigAddress);
 
-            // https://blockchain.info/unspent?active=3PcxJeW5f6Tp4mVAXe4ggGRvDREAPCMF4o
+            // Here are some transactions we prepared earlier
             var test_output = {"unspent_outputs":[
+                    {
+                        "tx_hash":"f1e10f7dce25421a5f7a1793796eda901ba9130cc8daca3332db778f62ce84ca",
+                        "tx_hash_big_endian":"ca84ce628f77db3233cadac80c13a91b90da6e7993177a5f1a4225ce7d0fe1f1",
+                        "tx_index":74217510,
+                        "tx_output_n": 1,
+                        "script":"a914f08e151def9e83a2d96b44b5d87c719dcd374d8a87",
+                        "value": 60000,
+                        "value_hex": "00ea60",
+                        "confirmations":1
+                    }
+                  
+                ]
+            };
+
+            // https://blockchain.info/unspent?active=3PcxJeW5f6Tp4mVAXe4ggGRvDREAPCMF4o
+            var test_output2 = {"unspent_outputs":[
                 {
                 "tx_hash":"399db526b9602711d864e229222be30d2df49f7fddf0ab5b301bf335c32327ca",
                 "tx_hash_big_endian":"ca2723c335f31b305babf0dd7f9ff42d0de32b2229e264d8112760b926b59d39",
@@ -119,12 +135,25 @@ describe('BranchingTransactionBuilder', function() {
                 }
             ]};
 
-            // now the spend, let's use the second key/branch
+            // now the spend, with the first branch
             var spend_builder = new TransactionBuilder();
-            spend_builder.addInput(test_output['unspent_outputs'][0]['tx_hash_big_endian'], 0);
+            spend_builder.addInput(test_output['unspent_outputs'][0]['tx_hash_big_endian'], test_output['unspent_outputs'][0]['tx_output_n']);
             spend_builder.addOutput("1Dc8JwPsxxwHJ9zX1ERYo9q7NQA9SRLqbC", test_output['unspent_outputs'][0]['value'] - 10000);
 
-            //var priv1 = ECKey.fromWIF('L3bG2JdtcZtWd7fk8XYAtgnGHJYuPBFkDznJqw21bFWS5B8Pw1Zd');
+            var priv1 = ECKey.fromWIF('L3bG2JdtcZtWd7fk8XYAtgnGHJYuPBFkDznJqw21bFWS5B8Pw1Zd');
+            var gp_builder = new BranchingTransactionBuilder(spend_builder);
+            // input 0 of the tx, first branch of 2 (index 0)
+            gp_builder.selectInputBranch(0, 0, 2);
+            gp_builder.signBranch(0, priv1, branch_redeem_script, null, branch1)
+            var tx = gp_builder.build();
+            assert.equal(tx.toHex(), '0100000001f1e10f7dce25421a5f7a1793796eda901ba9130cc8daca3332db778f62ce84ca01000000a147304402205e03edd02fb8895fbea867a42ea95d3da13fd5891351fc85489c92b4132caf2a022039898eacbf6c527269c71c324d3e115738834e49c44903a2a7cc2bcf79987f4601210247e6c3a88d76ab7505c147e5a9bcf0011226f7690081dd728042831f90a391ed51356376a914a2f26faf639c9a7e6a3ae5076bf7bbbf6cf1732a88ac6776a9140053af91626c8e511b63f651161208b56ad0adac88ac68ffffffff0150c30000000000001976a9148a462b671791d0bfbd8fd0d3987f652258d06dd088ac00000000');
+            // We successfully broadcast this through a bitcoin 0.10 node
+
+            // now the spend, let's use the second key/branch
+            var spend_builder = new TransactionBuilder();
+            spend_builder.addInput(test_output2['unspent_outputs'][0]['tx_hash_big_endian'], test_output2['unspent_outputs'][0]['tx_output_n']);
+            spend_builder.addOutput("1Dc8JwPsxxwHJ9zX1ERYo9q7NQA9SRLqbC", test_output2['unspent_outputs'][0]['value'] - 10000);
+
             var priv2 = ECKey.fromWIF('L3MRgBTuEtfvEpwb4CcGtDm4s79fDR8UK1AhVYcDdRL4pRpsy686');
             var gp_builder = new BranchingTransactionBuilder(spend_builder);
 
@@ -134,7 +163,9 @@ describe('BranchingTransactionBuilder', function() {
             var tx = gp_builder.build();
 
             assert.equal(tx.toHex(), '0100000001399db526b9602711d864e229222be30d2df49f7fddf0ab5b301bf335c32327ca00000000a147304402201183dd21b0f484d7efe56d9cd79b3f06cb9ae1dad1a59743abedf263ad48079e022026775aec0fefaab63f15f4561dfe6aa8c5047e54995db9ea97bcc4e9e89c7b7901210389688a084ff6f83c9ed3c91236e0f46d060cef32da23dfc6fc147fde6af9ca1000356376a914a2f26faf639c9a7e6a3ae5076bf7bbbf6cf1732a88ac6776a9140053af91626c8e511b63f651161208b56ad0adac88ac68ffffffff01d8d60000000000001976a9148a462b671791d0bfbd8fd0d3987f652258d06dd088ac00000000');
-            
+            // We successfully broadcast this through blockchain.info
+
+                        
         })
     })
 });
