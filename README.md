@@ -8,11 +8,13 @@ For example:
 - Alice + Bob 
 - OR 
 - Chika + Dave 
-- * But not (Alice + Chika) or (Bob + Dave)
+* But not (Alice + Chika) or (Bob + Dave)
 
 Each of these sets of conditions is treated as a "subscript".
-Subscripts should look like standard transactions that bitcoinjs-lib understands.
-The most common of these is m of n pub multisig.
+Subscripts should look like standard transactions that bitcoinjs-lib understands, such as:
+- PubKeyHash (The normal way to pay a bitcoin address)
+- Pubkey 
+- MultiSig (m of n PubKeys)
 
 See test/branching_transaction_builder.js for examples.
 
